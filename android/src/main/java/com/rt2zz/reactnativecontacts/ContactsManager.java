@@ -1,12 +1,16 @@
 package com.rt2zz.reactnativecontacts;
 
 import android.provider.ContactsContract;
+import android.provider.ContactsContract.RawContacts;
+import android.provider.ContactsContract.RawContacts.Entity;
+import android.provider.ContactsContract.CommonDataKinds.StructuredName;
 import android.content.ContentResolver;
 import android.content.Context;
 
 import android.database.Cursor;
 import android.net.Uri;
 import android.content.ContentUris;
+import android.content.ContentValues;
 
 import com.facebook.react.bridge.NativeModule;
 import com.facebook.react.bridge.ReactApplicationContext;
@@ -117,6 +121,38 @@ public class ContactsManager extends ReactContextBaseJavaModule {
     callback.invoke(null, contacts);
   }
 
+  @ReactMethod
+  public void addContact(JSONObject contact, Callback callback) {
+    ContentResolver cr = getReactApplicationContext().getContentResolver();
+
+    ContentValues values = new ContentValues();
+    values.put(RawContacts.ACCOUNT_TYPE, 'reactNativeGenerated');
+    values.put(RawContacts.ACCOUNT_NAME, 'reactNativeContacts');
+    Uri rawContactUri = cr.insert(RawContacts.CONTENT_URI, values);
+    long rawContactId = ContentUris.parseId(rawContactUri);
+    values.clear();
+    values.put(ContactsContract.Data.RAW_CONTACT_ID, rawContactId);
+    values.put(ContactsContract.Data.MIMETYPE, StructuredName.CONTENT_ITEM_TYPE);
+    values.put(StructuredName.DISPLAY_NAME, "Mike Sullivan");
+    cr.insert(ContactsContract.Data.CONTENT_URI, values);
+
+    Uri rawContactUri = ContentUris.withAppendedId(RawContacts.CONTENT_URI, rawContactId);
+    Uri entityUri = Uri.withAppendedPath(rawContactUri, Entity.CONTENT_DIRECTORY);
+    Cursor c = cr.query(
+      entityUri,
+      new String[]{RawContacts.SOURCE_ID, Entity.DATA_ID, Entity.MIMETYPE, Entity.DATA1},
+      null, null, null);
+    if (c.moveToNext) {
+      String sourceId = c.getString(0);
+      if (!c.isNull(1)) {
+        String mimeType = c.getString(2);
+        String data = c.getString(3);
+      }
+      WritableMap contact = Arguments.createMap();
+      callback.invoke(null, )
+    }
+  }
+
   public String getPhotoUri(long contactId) {
     ContentResolver cr = getReactApplicationContext().getContentResolver();
 
@@ -133,14 +169,13 @@ public class ContactsManager extends ReactContextBaseJavaModule {
                 + ContactsContract.CommonDataKinds.Photo.CONTENT_ITEM_TYPE
                 + "'", null, null);
     try {
-        if (cursor != null) {
+      if (cursor != null) {
         if (!cursor.moveToFirst()) {
-            return null; // no photo
+          return null; // no photo
         }
-        } else {
+      } else {
         return null; // error in cursor process
-        }
-
+      }
     } catch (Exception e) {
         e.printStackTrace();
         return null;
