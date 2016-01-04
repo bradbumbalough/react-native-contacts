@@ -1,5 +1,5 @@
 # React Native Contacts
-Work in progress successor to react-native-addressbook.
+Work in progress successor to react-native-addressbook. This is essentially a pre-alpha release. Expect breaking changes!
 
 Rx support with [react-native-contacts-rx](https://github.com/JeanLebrument/react-native-contacts-rx)
 
@@ -56,9 +56,11 @@ Contacts.getAll((err, contacts) => {
     label: "mobile",
     number: "(555) 555-5555",
   }],
-  thumbnailPath: "", //iOS only
+  thumbnailPath: "",
 }
 ```
+**NOTE**
+* on Android the entire display name is passed in the `givenName` field. `middleName` and `familyName` will be `""`.
 
 ## Adding Contacts
 Currently all fields from the contact record except for thumbnailPath are supported for writing
